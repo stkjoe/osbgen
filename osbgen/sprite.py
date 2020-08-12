@@ -1,8 +1,9 @@
 import inspect
+from event import Event
 
 class Sprite:
     def __init__(self, path, layer="Background", origin="Centre", posX=320, posY=240, 
-                 animation=False, frameCount=0, frameDelay=0, looptype="LoopForever"):
+                 animation=False, frameCount=0, frameDelay=0, loopType="LoopForever"):
         # osu!-specific parameters.
         self.path = path
         self.layer = layer
@@ -12,7 +13,7 @@ class Sprite:
         if animation:
             self.frameCount = frameCount
             self.frameDelay = frameDelay
-            self.looptype = looptype
+            self.loopType = loopType
 
         # module-specific parameters.
         self.animation = animation
@@ -50,11 +51,11 @@ class Sprite:
                                "Must be greater than 0. "
                                "Got {}.").format(lineNum, self.frameCount))
         
-            # Checks if looptype is valid.
-            if self.looptype not in ["LoopForever", "LoopOnce"]:
+            # Checks if loopType is valid.
+            if self.loopType not in ["LoopForever", "LoopOnce"]:
                 errors.append(("[{}] Error: Expected "
                                "['LoopForever', 'LoopOnce']. "
-                               "Got {}.").format(lineNum, self.looptype)) 
+                               "Got {}.").format(lineNum, self.loopType)) 
 
         return errors
     
@@ -65,7 +66,7 @@ class Sprite:
                                                       self.layer, self.origin, self.path, self.posX, 
                                                       self.posY, ",{},{},{}".format(
                                                           self.frameCount, self.frameDelay, 
-                                                          self.looptype) if self.animation else ""))
+                                                          self.loopType) if self.animation else ""))
         for event in self.events:
             lines.append(event.compile())
         return lines
