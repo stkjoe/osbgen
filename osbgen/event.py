@@ -29,6 +29,39 @@ class Event:
                 print(_)
             return bool(self.valid)
 
+# Represents a fade command.
+class Fade(Event):
+    def __init__(self, eventType, startTime, endTime, startFade, *, endFade=startFade, easing):
+        super().__init__(eventType=eventType, startTime=startTime, endTime=endTime, easing=easing)
+        # osu!-specific parameters.
+        self.startFade = startFade
+        self.endFade = endFade
+
+    def init_check(self, lineNum):
+        errors = Event.init_check(self, lineNum)
+        # TODO: Add checks for movement event.
+        return errors
+
+    def compile(self):
+        check = super().compile()
+        if check:
+            return check
+
+        with open("output.txt", "a") as file:
+            # The base sprite line.
+            file.write((' F,{},{},{},{}{}\n').format(self.easing, self.startTime, self.endTime,
+                                                      self.startFade,
+                                                      # If endFade is the same as startFade
+                                                      # Then it's fine to omit the last parameter.
+                                                      ",{}".format(self.endFade) if not (
+                                                                   self.endFade == self.startFade) 
+                                                                   else ""))
+
+        return 0
+
+    def __str__(self):
+        return self.compile()
+
 # Represents a movement command.
 class Move(Event):
     def __init__(self, eventType, startTime, endTime, startX, startY, *, endX=startX, endY=startY, easing):
