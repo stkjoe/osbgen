@@ -3,9 +3,8 @@ import inspect
 # Base parent object to be inherited from.
 # Under no circumstances is it to be used in scripting.
 class Event:
-    def __init__(self, eventType, startTime, endTime=None, *, easing=0):
+    def __init__(self, startTime, endTime, *, easing):
         # osu!-specific parameters.
-        self.eventType = eventType
         self.easing = easing
         self.startTime = startTime
         self.endTime = endTime
@@ -31,8 +30,8 @@ class Event:
 
 # Represents a fade command.
 class Fade(Event):
-    def __init__(self, eventType, startTime, endTime, startFade, *, endFade=startFade, easing):
-        super().__init__(eventType=eventType, startTime=startTime, endTime=endTime, easing=easing)
+    def __init__(self, startTime, endTime, startFade, endFade="", *, easing=0):
+        super().__init__(startTime=startTime, endTime=endTime, easing=easing)
         # osu!-specific parameters.
         self.startFade = startFade
         self.endFade = endFade
@@ -48,33 +47,30 @@ class Fade(Event):
             return check
 
         with open("output.txt", "a") as file:
-            # The base sprite line.
             file.write((' F,{},{},{},{}{}\n').format(self.easing, self.startTime, self.endTime,
-                                                      self.startFade,
-                                                      # If endFade is the same as startFade
-                                                      # Then it's fine to omit the last parameter.
-                                                      ",{}".format(self.endFade) if not (
-                                                                   self.endFade == self.startFade) 
-                                                                   else ""))
+                                                     self.startFade,
+                                                     # If endFade is the same as startFade
+                                                     # Then it's fine to omit the last parameter.
+                                                     ",{}".format(self.endFade) if not (
+                                                                  self.endFade == self.startFade) 
+                                                                  else ""))
 
         return 0
 
     def __str__(self):
         return self.compile()
 
-# Represents a movement command.
-class Move(Event):
-    def __init__(self, eventType, startTime, endTime, startX, startY, *, endX=startX, endY=startY, easing):
-        super().__init__(eventType=eventType, startTime=startTime, endTime=endTime, easing=easing)
+# Represents a movementX command.
+class MoveX(Event):
+    def __init__(self, startTime, endTime, startX, endX="", *, easing):
+        super().__init__(startTime=startTime, endTime=endTime, easing=easing)
         # osu!-specific parameters.
         self.startX = startX
-        self.startY = startY
         self.endX = endX
-        self.endY = endY
 
     def init_check(self, lineNum):
         errors = Event.init_check(self, lineNum)
-        # TODO: Add checks for movement event.
+        # TODO: Add checks for movementX event.
         return errors
 
     def compile(self):
@@ -83,13 +79,78 @@ class Move(Event):
             return check
 
         with open("output.txt", "a") as file:
-            # The base sprite line.
+            file.write((' MX,{},{},{},{}{}\n').format(self.easing, self.startTime, self.endTime,
+                                                      self.startX,
+                                                      # If endX is the same as startX,
+                                                      # Then it's fine to omit the last parameter.
+                                                      ",{}".format(self.endX) if not (
+                                                                   self.endX == self.startX or
+                                                                   self.endX == "")
+                                                                   else ""))
+
+        return 0
+
+    def __str__(self):
+        return self.compile()
+
+# Represents a movementY command.
+class MoveY(Event):
+    def __init__(self, startTime, endTime, startY, endY="", *, easing):
+        super().__init__(startTime=startTime, endTime=endTime, easing=easing)
+        # osu!-specific parameters.
+        self.startY = startY
+        self.endY = endY
+
+    def init_check(self, lineNum):
+        errors = Event.init_check(self, lineNum)
+        # TODO: Add checks for movementY event.
+        return errors
+
+    def compile(self):
+        check = super().compile()
+        if check:
+            return check
+
+        with open("output.txt", "a") as file:
+            file.write((' MY,{},{},{},{}{}\n').format(self.easing, self.startTime, self.endTime,
+                                                      self.startY,
+                                                      # If endX is the same as startX,
+                                                      # Then it's fine to omit the last parameter.
+                                                      ",{}".format(self.endY) if not (
+                                                                   self.endY == self.startY or
+                                                                   self.endY == "")
+                                                                   else ""))
+
+        return 0
+
+    def __str__(self):
+        return self.compile()
+
+# Represents a movement command.
+class Move(MoveX, MoveY, Event):
+    def __init__(self, startTime, endTime, startX, startY, endX="", endY="", *, easing):
+        MoveX.__init__(self, startTime=startTime, endTime=endTime, easing=easing,
+                       startX=startX, endX=endX)
+        MoveY.__init__(self, startTime=startTime, endTime=endTime, easing=easing,
+                       startY=startY, endY=endY)
+
+    def init_check(self, lineNum):
+        errors = MoveX.init_check(self, lineNum) + MoveY.init_check(self, lineNum)
+        # TODO: Add checks for general movement event.
+        return errors
+
+    def compile(self):
+        check = Event.compile(self)
+        if check:
+            return check
+
+        with open("output.txt", "a") as file:
             file.write((' M,{},{},{},{},{}{}\n').format(self.easing, self.startTime, self.endTime,
                                                         self.startX, self.startY, 
                                                         # If endX and endY are the same as startX and startY,
                                                         # Then it's fine to omit the last two parameters.
                                                         ",{},{}".format(self.endX, self.endY) if not (
-                                                                        self.endX == self.startX or 
+                                                                        self.endX == self.startX and 
                                                                         self.endY == self.startY) 
                                                                         else ""))
 
