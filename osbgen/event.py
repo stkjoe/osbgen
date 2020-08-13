@@ -203,7 +203,7 @@ class Vector(Event):
 
     def init_check(self, lineNum):
         errors = Event.init_check(self, lineNum)
-        # TODO: Add checks for scale event.
+        # TODO: Add checks for vector event.
         return errors
 
     def compile(self):
@@ -236,7 +236,7 @@ class Rotate(Event):
 
     def init_check(self, lineNum):
         errors = Event.init_check(self, lineNum)
-        # TODO: Add checks for scale event.
+        # TODO: Add checks for rotate event.
         return errors
 
     def compile(self):
@@ -272,7 +272,7 @@ class Colour(Event):
 
     def init_check(self, lineNum):
         errors = Event.init_check(self, lineNum)
-        # TODO: Add checks for scale event.
+        # TODO: Add checks for colour event.
         return errors
 
     def compile(self):
@@ -290,6 +290,31 @@ class Colour(Event):
                                                                         self.startG == self.endG and
                                                                         self.startB == self.endB) 
                                                                         else ""))
+
+        return 0
+
+    def __str__(self):
+        return self.compile()
+
+# Represents an other parameter command.
+class Parameter(Event):
+    def __init__(self, startTime, endTime, param, *, easing=0):
+        super().__init__(startTime=startTime, endTime=endTime, easing=easing)
+        self.param = param
+
+    def init_check(self, lineNum):
+        errors = Event.init_check(self, lineNum)
+        # TODO: Add checks for parameter event.
+        return errors
+
+    def compile(self):
+        check = super().compile()
+        if check:
+            return check
+
+        with open("output.txt", "a") as file:
+            file.write((' P,{},{},{},{}\n').format(self.easing, self.startTime, self.endTime,
+                                                    self.param))
 
         return 0
 
