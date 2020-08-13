@@ -49,7 +49,9 @@ class Object:
 
     def compile(self):
         if self.valid:
-            return self.valid
+            for _ in self.valid:
+                print(_)
+            return bool(self.valid)
 
 # Represents a normal sprite.
 class Sprite(Object):
@@ -57,7 +59,9 @@ class Sprite(Object):
         super().__init__(path, layer=layer, origin=origin, posX=posX, posY=posY)
 
     def compile(self):
-        super().compile()
+        check = super().compile()
+        if check:
+            return check
 
         with open("output.txt", "a") as file:
             # The base sprite line.
