@@ -190,3 +190,38 @@ class Scale(Event):
 
     def __str__(self):
         return self.compile()
+
+# Represents a vector command.
+class Vector(Event):
+    def __init__(self, startTime, endTime, startX, startY, endX="", endY="", *, easing=0):
+        super().__init__(startTime=startTime, endTime=endTime, easing=easing)
+        # osu!-specific parameters.
+        self.startX = startX
+        self.startY = startY
+        self.endX = endX
+        self.endY = endY
+
+    def init_check(self, lineNum):
+        errors = Event.init_check(self, lineNum)
+        # TODO: Add checks for scale event.
+        return errors
+
+    def compile(self):
+        check = super().compile()
+        if check:
+            return check
+
+        with open("output.txt", "a") as file:
+            file.write((' V,{},{},{},{},{}{}\n').format(self.easing, self.startTime, self.endTime,
+                                                        self.startX, self.startY,
+                                                        # If endFade is the same as startFade
+                                                        # Then it's fine to omit the last parameter.
+                                                        ",{},{}".format(self.endX, self.endY) if not (
+                                                                        self.endX == self.startX and 
+                                                                        self.endY == self.startY) 
+                                                                        else ""))
+
+        return 0
+
+    def __str__(self):
+        return self.compile()
