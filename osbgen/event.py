@@ -225,3 +225,35 @@ class Vector(Event):
 
     def __str__(self):
         return self.compile()
+
+# Represents a rotate command.
+class Rotate(Event):
+    def __init__(self, startTime, endTime, startRotate, endRotate="", *, easing=0):
+        super().__init__(startTime=startTime, endTime=endTime, easing=easing)
+        # osu!-specific parameters.
+        self.startRotate = startRotate
+        self.endRotate = endRotate
+
+    def init_check(self, lineNum):
+        errors = Event.init_check(self, lineNum)
+        # TODO: Add checks for scale event.
+        return errors
+
+    def compile(self):
+        check = super().compile()
+        if check:
+            return check
+
+        with open("output.txt", "a") as file:
+            file.write((' R,{},{},{},{}{}\n').format(self.easing, self.startTime, self.endTime,
+                                                     self.startRotate,
+                                                     # If endFade is the same as startFade
+                                                     # Then it's fine to omit the last parameter.
+                                                     ",{}".format(self.endRotate) if not (
+                                                                  self.endRotate == self.startRotate) 
+                                                                  else ""))
+
+        return 0
+
+    def __str__(self):
+        return self.compile()
