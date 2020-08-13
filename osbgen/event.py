@@ -300,6 +300,7 @@ class Colour(Event):
 class Parameter(Event):
     def __init__(self, startTime, endTime, param, *, easing=0):
         super().__init__(startTime=startTime, endTime=endTime, easing=easing)
+        # osu!-specific parameters.
         self.param = param
 
     def init_check(self, lineNum):
@@ -315,6 +316,36 @@ class Parameter(Event):
         with open("output.txt", "a") as file:
             file.write((' P,{},{},{},{}\n').format(self.easing, self.startTime, self.endTime,
                                                     self.param))
+
+        return 0
+
+    def __str__(self):
+        return self.compile()
+
+# Represents a Loop class.
+class Loop:
+    def __init__(self, startTime, loopCount):
+        # osu!-specific parameters.
+        self.startTime = startTime
+        self.loopCount = loopCount
+
+        # module-specific parameters.
+        self.events = []
+
+        lineNum = inspect.getframeinfo(inspect.stack()[1][0])
+        self.valid = self.init_check(lineNum)
+
+    def init_check(self, lineNum):
+        errors = Event.init_check(self, lineNum)
+        # TODO: Add checks for parameter event.
+        return errors
+
+    def compile(self):
+        with open("output.txt", "a") as file:
+            file.write((' L,{},{}\n').format(self.startTime, self.loopCount))
+            for event in self.events:
+                file.write(' ')
+                event.compile()
 
         return 0
 
