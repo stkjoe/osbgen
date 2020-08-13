@@ -257,3 +257,41 @@ class Rotate(Event):
 
     def __str__(self):
         return self.compile()
+
+# Represents a colour command.
+class Colour(Event):
+    def __init__(self, startTime, endTime, startR, startG, startB, endR="", endG="", endB="", *, easing=0):
+        super().__init__(startTime=startTime, endTime=endTime, easing=easing)
+        # osu!-specific parameters.
+        self.startR = startR
+        self.startG = startG
+        self.startB = startB
+        self.endR = endR
+        self.endG = endG
+        self.endB = endB
+
+    def init_check(self, lineNum):
+        errors = Event.init_check(self, lineNum)
+        # TODO: Add checks for scale event.
+        return errors
+
+    def compile(self):
+        check = super().compile()
+        if check:
+            return check
+
+        with open("output.txt", "a") as file:
+            file.write((' C,{},{},{},{},{},{}{}\n').format(self.easing, self.startTime, self.endTime,
+                                                     self.startR, self.startG, self.startB,
+                                                     # If endFade is the same as startFade
+                                                     # Then it's fine to omit the last parameter.
+                                                     ",{},{},{}".format(self.endR, self.endG, self.endB) if not (
+                                                                        self.startR == self.endR and
+                                                                        self.startG == self.endG and
+                                                                        self.startB == self.endB) 
+                                                                        else ""))
+
+        return 0
+
+    def __str__(self):
+        return self.compile()
