@@ -322,7 +322,7 @@ class Parameter(Event):
     def __str__(self):
         return self.compile()
 
-# Represents a Loop class.
+# Represents a Loop command.
 class Loop:
     def __init__(self, startTime, loopCount):
         # osu!-specific parameters.
@@ -343,6 +343,37 @@ class Loop:
     def compile(self):
         with open("output.txt", "a") as file:
             file.write((' L,{},{}\n').format(self.startTime, self.loopCount))
+            for event in self.events:
+                file.write(' ')
+                event.compile()
+
+        return 0
+
+    def __str__(self):
+        return self.compile()
+
+# Represents a Trigger command.
+class Trigger:
+    def __init__(self, triggerName, start, end):
+        # osu!-specific parameters.
+        self.triggerName = triggerName
+        self.start = start
+        self.end = end
+
+        # module-specific parameters.
+        self.events = []
+
+        lineNum = inspect.getframeinfo(inspect.stack()[1][0])
+        self.valid = self.init_check(lineNum)
+
+    def init_check(self, lineNum):
+        errors = Event.init_check(self, lineNum)
+        # TODO: Add checks for parameter event.
+        return errors
+
+    def compile(self):
+        with open("output.txt", "a") as file:
+            file.write((' T,{},{},{}\n').format(self.triggerName, self.start, self.end))
             for event in self.events:
                 file.write(' ')
                 event.compile()
