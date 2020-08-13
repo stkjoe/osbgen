@@ -23,6 +23,12 @@ class Object:
         # Checks to see if the current sprite is valid.
         errors = []
 
+        # Check if sprite file is correct.
+        if self.path.split(".")[-1] not in ["png", "jpg"]:
+            errors.append(("[{}] Error: Expected "
+                           "['png', 'jpg']. "
+                           "Got {}.").format(lineNum, self.path.split(".")[-1]))
+
         # Checks if the layer is valid.
         if self.layer not in ["Background", "Foreground", "Pass", "Fail"]:
             errors.append(("[{}] Error: Expected "
@@ -41,18 +47,26 @@ class Object:
 
         return errors
 
+    def compile(self):
+        if self.valid:
+            return self.valid
+
 # Represents a normal sprite.
 class Sprite(Object):
     def __init__(self, path, layer="Background", origin="Centre", posX=320, posY=240):
         super().__init__(path, layer=layer, origin=origin, posX=posX, posY=posY)
 
     def compile(self):
+        super().compile()
+
         with open("output.txt", "a") as file:
             # The base sprite line.
             file.write(('Sprite,{},{},"{}",{},{}\n').format(self.layer, self.origin, self.path,
-                                                          self.posX, self.posY))
+                                                            self.posX, self.posY))
             for event in self.events:
                 event.compile()
+
+        return 0
 
     def __str__(self):
         return self.compile()
@@ -61,7 +75,7 @@ class Sprite(Object):
 class Animation(Object):
     def __init__(self, path, *, layer="Background", origin="Centre", posX=320, posY=240,
                  frameCount, frameDelay, loopType="loopForever"):
-        Object.__init__(self, path, layer=layer, origin=origin, posX=posX, posY=posY)
+        super().__init__(path, layer=layer, origin=origin, posX=posX, posY=posY)
         # Additional osu!-specific parameters.
         self.frameCount = frameCount
         self.frameDelay = frameDelay
@@ -85,6 +99,8 @@ class Animation(Object):
         return errors
 
     def compile(self):
+        super().compile()
+
         with open("output.txt", "a") as file:
             # The base sprite line.
             file.write(('Animation,{},{},"{}",{},{},{},{},{}\n').format(self.layer, self.origin, self.path,
@@ -108,12 +124,49 @@ class Audio:
         # module-specific parameters.
         self.events = []
 
+        lineNum = inspect.getframeinfo(inspect.stack()[1][0])
+        self.valid = self.init_check(lineNum)
+
+    def init_check(self, lineNum):
+        errors = []
+        # Audio-specific checks.
+        
+        # Check if audio file is correct.
+        if self.path.split(".")[-1] not in ["wav", "mp3", "ogg"]:
+            errors.append(("[{}] Error: Expected "
+                           "['wav', 'mp3', 'ogg']. "
+                           "Got {}.").format(lineNum, self.path.split(".")[-1]))
+
+        # Checks if the layer is valid.
+        if self.layer not in ["Background", "Foreground", "Pass", "Fail"]:
+            errors.append(("[{}] Error: Expected "
+                           "['Background', 'Foreground', 'Pass', 'Fail']. "
+                           "Got {}.").format(lineNum, self.layer))
+
+        # Checks if the volume is valid.
+        try:
+            if not 0 <= float(self.volume) <= 100:
+                errors.append(("[{}] Error: Volume must be between 0 and 100."
+                               "Got {}.").format(lineNum, self.volume))
+
+        except ValueError:
+            errors.append(("[{}] Error: Expected an integer."
+                           "Got {}.").format(lineNum, self.volume))
+
+        return errors
+
+
     def compile(self):
+        if self.valid:
+            return self.valid
+
         with open("output.txt", "a") as file:
             # The base sprite line.
             file.write(('Sample,{},{},"{}",{}\n').format(self.time, self.layer, self.path, self.volume))
             for event in self.events:
                 event.compile()
+
+        return 0
 
     def __str__(self):
         return self.compile()
