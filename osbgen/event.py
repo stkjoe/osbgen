@@ -158,3 +158,35 @@ class Move(MoveX, MoveY, Event):
 
     def __str__(self):
         return self.compile()
+
+# Represents a scale command.
+class Scale(Event):
+    def __init__(self, startTime, endTime, startScale, endScale="", *, easing=0):
+        super().__init__(startTime=startTime, endTime=endTime, easing=easing)
+        # osu!-specific parameters.
+        self.startScale = startScale
+        self.endScale = endScale
+
+    def init_check(self, lineNum):
+        errors = Event.init_check(self, lineNum)
+        # TODO: Add checks for scale event.
+        return errors
+
+    def compile(self):
+        check = super().compile()
+        if check:
+            return check
+
+        with open("output.txt", "a") as file:
+            file.write((' S,{},{},{},{}{}\n').format(self.easing, self.startTime, self.endTime,
+                                                     self.startScale,
+                                                     # If endFade is the same as startFade
+                                                     # Then it's fine to omit the last parameter.
+                                                     ",{}".format(self.endScale) if not (
+                                                                  self.endScale == self.startScale) 
+                                                                  else ""))
+
+        return 0
+
+    def __str__(self):
+        return self.compile()
