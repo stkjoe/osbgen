@@ -49,8 +49,8 @@ class Object:
 
     def compile(self):
         if self.valid:
-            for _ in self.valid:
-                print(_)
+            for error in self.valid:
+                print(error)
             return bool(self.valid)
 
 # Represents a normal sprite.

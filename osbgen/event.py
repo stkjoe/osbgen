@@ -24,8 +24,8 @@ class Event:
     
     def compile(self):
         if self.valid:
-            for _ in self.valid:
-                print(_)
+            for error in self.valid:
+                print(error)
             return bool(self.valid)
 
 # Represents a fade command.
