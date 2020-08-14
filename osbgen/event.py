@@ -62,7 +62,7 @@ class Fade(Event):
 
 # Represents a movementX command.
 class MoveX(Event):
-    def __init__(self, startTime, endTime, startX, endX="", *, easing):
+    def __init__(self, startTime, endTime, startX, endX="", *, easing=0):
         super().__init__(startTime=startTime, endTime=endTime, easing=easing)
         # osu!-specific parameters.
         self.startX = startX
@@ -95,7 +95,7 @@ class MoveX(Event):
 
 # Represents a movementY command.
 class MoveY(Event):
-    def __init__(self, startTime, endTime, startY, endY="", *, easing):
+    def __init__(self, startTime, endTime, startY, endY="", *, easing=0):
         super().__init__(startTime=startTime, endTime=endTime, easing=easing)
         # osu!-specific parameters.
         self.startY = startY
@@ -128,7 +128,7 @@ class MoveY(Event):
 
 # Represents a movement command.
 class Move(MoveX, MoveY, Event):
-    def __init__(self, startTime, endTime, startX, startY, endX="", endY="", *, easing):
+    def __init__(self, startTime, endTime, startX, startY, endX="", endY="", *, easing=0):
         MoveX.__init__(self, startTime=startTime, endTime=endTime, easing=easing,
                        startX=startX, endX=endX)
         MoveY.__init__(self, startTime=startTime, endTime=endTime, easing=easing,
