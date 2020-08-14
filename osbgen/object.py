@@ -1,5 +1,5 @@
 import inspect
-from Event import Fade, MoveX, MoveY, Move, Scale, Vector, Rotate, Colour, Parameter, Loop, Trigger
+from .event import Fade, MoveX, MoveY, Move, Scale, Vector, Rotate, Colour, Parameter, Loop, Trigger
 
 # Base parent object to be inherited from.
 # Under no circumstances is it to be used in scripting.

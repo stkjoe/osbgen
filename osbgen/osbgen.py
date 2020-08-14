@@ -1,4 +1,4 @@
-from Object import Sprite, Animation, Audio
+from .object import Sprite, Animation, Audio
 
 # Represents a Storyboard.
 class Storyboard:
