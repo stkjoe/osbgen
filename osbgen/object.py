@@ -1,5 +1,5 @@
 import inspect
-from event import Event
+from Event import Fade, MoveX, MoveY, Move, Scale, Vector, Rotate, Colour, Parameter, Loop, Trigger
 
 # Base parent object to be inherited from.
 # Under no circumstances is it to be used in scripting.
@@ -53,9 +53,81 @@ class Object:
                 print(error)
             return bool(self.valid)
 
+    def fade(self, startTime, endTime, startFade, endFade="", *, easing=0):
+        fade = Fade(startTime, endTime, startFade, endFade=endFade, easing=easing)
+        self.events.append(fade)
+        return fade
+
+    def moveX(self, startTime, endTime, startX, endX="", *, easing=0):
+        moveX = MoveX(startTime, endTime, startX, endX, easing=easing)
+        self.events.append(moveX)
+        return moveX
+
+    def moveY(self, startTime, endTime, startY, endY="", *, easing=0):
+        moveY = MoveY(startTime, endTime, startY, endY, easing=easing)
+        self.events.append(moveY)
+        return moveY
+
+    def move(self, startTime, endTime, startX, startY, endX="", endY="", *, easing=0):
+        move = Move(startTime, endTime, startX, startY, endX, endY, easing=easing)
+        self.events.append(move)
+        return move
+
+    def scale(self, startTime, endTime, startScale, endScale="", *, easing=0):
+        scale = Scale(startTime, endTime, startScale, endScale, easing=0)
+        self.events.append(scale)
+        return scale
+
+    def vector(self, startTime, endTime, startX, startY, endX="", endY="", *, easing=0):
+        vector = Vector(startTime, endTime, startX, startY, endX, endY, easing=0)
+        self.events.append(vector)
+        return vector
+
+    def rotate(self, startTime, endTime, startRotate, endRotate="", *, easing=0):
+        rotate = Rotate(startTime, endTime, startRotate, endRotate, easing=0)
+        self.events.append(rotate)
+        return rotate
+
+    def colourRGB(self, startTime, endTime, startR, startG, startB, endR="", endG="", endB="", *, easing=0):
+        colour = Colour(startTime, endTime, startR, startG, startB, endR, endG, endB, easing=easing)
+        self.events.append(colour)
+        return colour
+
+    def colourHex(self, startTime, endTime, hexcode, endHexcode, *, easing=0):
+        colours = tuple(int(hexcode[i:i+2], 16) for i in (0, 2, 4))
+        endColours = tuple(int(endHexcode[i:i+2], 16) for i in (0, 2, 4))
+        colour = Colour(startTime, endTime, colours[0], colours[1], colours[2], endColours[0], endColours[1], endColours[2], easing=easing)
+        self.events.append(colour)
+        return colour
+
+    def trigger(self, triggerName, start, end):
+        trigger = Trigger(triggerName, start, end)
+        self.events.append(trigger)
+        return trigger
+
+    def loop(self, startTime, loopCount):
+        loop = Loop(startTime, loopCount)
+        self.events.append(loop)
+        return loop
+
+    def flipX(self, startTime, endTime, easing=0):
+        parameter = Parameter(startTime, endTime, "H", easing=0)
+        self.events.append(parameter)
+        return parameter
+
+    def flipY(self, startTime, endTime, easing=0):
+        parameter = Parameter(startTime, endTime, "V", easing=0)
+        self.events.append(parameter)
+        return parameter
+
+    def additiveBlend(self, startTime, endTime, easing=0):
+        parameter = Parameter(startTime, endTime, "A", easing=0)
+        self.events.append(parameter)
+        return parameter
+
 # Represents a normal sprite.
 class Sprite(Object):
-    def __init__(self, path, layer="Background", origin="Centre", posX=320, posY=240):
+    def __init__(self, path, layer="Foreground", *, origin="Centre", posX=320, posY=240):
         super().__init__(path, layer=layer, origin=origin, posX=posX, posY=posY)
 
     def compile(self):
@@ -77,7 +149,7 @@ class Sprite(Object):
 
 # Represents an animation sprite.
 class Animation(Object):
-    def __init__(self, path, *, layer="Background", origin="Centre", posX=320, posY=240,
+    def __init__(self, path, layer="Foreground", *, origin="Centre", posX=320, posY=240,
                  frameCount, frameDelay, loopType="loopForever"):
         super().__init__(path, layer=layer, origin=origin, posX=posX, posY=posY)
         # Additional osu!-specific parameters.
@@ -118,7 +190,7 @@ class Animation(Object):
 
 # Represents an audio sprite.
 class Audio:
-    def __init__(self, path, *, time, layer="Background", volume=100):
+    def __init__(self, path, layer="Foreground", *, time, volume=100):
         # osu!-specific parameters.
         self.path = path
         self.time = time
