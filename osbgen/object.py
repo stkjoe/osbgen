@@ -29,6 +29,10 @@ class Object(Layer):
                 "Value": 1,
                 "Time": 0
             },
+            "Rotate": {
+                "Value": 1,
+                "Time": 0
+            },
             "Colour": {
                 "Value": [0, 0, 0],
                 "Time": 0
