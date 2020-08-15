@@ -1,5 +1,3 @@
-import inspect
-
 # Base class for Objects, Loops, and Triggers to inherit from.
 class Layer:
     def __init__(self):
@@ -7,8 +5,13 @@ class Layer:
         self.events = []
         self.posZ = 0
 
+    # Empty method because it is always overriden.
+    def getLine(self):
+        return ""
+
     def compile(self, writer):
-        writer.write(str(self))
+        writer.write(self.getLine())
+        return {}
 
     def addEvent(self, event):
         self.events.append(event)
@@ -81,26 +84,36 @@ class Event:
 
         # module-specific parameters.
 
+    def getStartValue(self):
+        if type(self.startValue) in [int, float]:
+            return str(self.startValue)
+        return self.startValue
+
     def getEndValue(self):
         return self.endValue if self.endValue != "" else self.startValue
 
     def getEndTime(self):
         return self.endTime if self.endTime != "" else self.startTime
     
-    def compile(self, writer):
-        writer.write(self.getLine())
-        current = {}
+    def compile(self, writer, current):
+        writer.write(self.getLine(current))
         current[self.__class__.__name__]["Value"] = self.getEndValue()
         current[self.__class__.__name__]["Time"] = self.getEndTime()
         current["Time"] = self.getEndTime()
         return current
 
-    def getLine(self):
+    def getLine(self, current):
+
+        def toStringList(val):
+            if type(val) in [int, float]:
+                val = [str(val)]
+            return ",".join([str(i) for i in val])
+
         return ' {},{},{},{},{}{}\n'.format(self.eventType, self.easing, self.startTime,
-                                            self.endTime, ",".join(self.startValue),
-                                            ",{}".format(",".join(self.endValue)) if not (
+                                            self.endTime, toStringList(self.startValue),
+                                            ",{}".format(toStringList(self.endValue)) if not (
                                                          self.startValue == self.endValue or
-                                                         self.endValue == "")
+                                                         self.endValue != "")
                                                          else "")
 
 
@@ -113,6 +126,20 @@ class Fade(Event):
         self.endValue = endFade
         self.eventType = "F"
 
+# Represents a movement command.
+class Move(Event):
+    def __init__(self, startTime, startX, startY, endTime, endX, endY, easing):
+        super().__init__(startTime, endTime, easing)
+        self.startValue = [startX, startY]
+        self.endValue = [endX, endY]
+        self.eventType = "M"
+
+    def compile(self, writer, current):
+        current = super().compile(writer, current)
+        current["X"] = self.getEndValue()[0]
+        current["Y"] = self.getEndValue()[1]
+        return current
+
 # Represents a movementX command.
 class MoveX(Event):
     def __init__(self, startTime, startX, endTime, endX, easing):
@@ -121,6 +148,11 @@ class MoveX(Event):
         self.startValue = startX
         self.endValue = endX
         self.eventType = "MX"
+
+    def compile(self, writer, current):
+        current = super().compile(writer, current)
+        current["X"] = self.getEndValue()
+        return current
 
 # Represents a movementY command.
 class MoveY(Event):
@@ -131,13 +163,10 @@ class MoveY(Event):
         self.endValue = endY
         self.eventType = "MY"
 
-# Represents a movement command.
-class Move(Event):
-    def __init__(self, startTime, startX, startY, endTime, endX, endY, easing):
-        super().__init__(startTime, endTime, easing)
-        self.startValue = [startX, startY]
-        self.endValue = [endX, endY]
-        self.eventType = "M"
+    def compile(self, writer, current):
+        current = super().compile(writer, current)
+        current["Y"] = self.getEndValue()
+        return current
 
 # Represents a scale command.
 class Scale(Event):
@@ -184,6 +213,11 @@ class Parameter(Event):
         # Setting endValue to param so the string builder will ignore.
         self.endValue = param
 
+    # No need to keep param tracked.
+    def compile(self, writer, current):
+        writer.write(self.getLine({}))
+        return current
+
 # Represents a Loop command.
 class Loop(Layer):
     def __init__(self, startTime, loopCount):
@@ -192,12 +226,13 @@ class Loop(Layer):
         self.startTime = startTime
         self.loopCount = loopCount
 
-    def compile(self, writer):
+    def compile(self, writer, current):
         super().compile(writer)
+        newCurrent = current
         for event in self.events:
             writer.write(" ")
-            event.compile(writer)
-        return {}
+            newCurrent.update(event.compile(writer, newCurrent))
+        return current
 
     def getLine(self):
         return ' L,{},{}\n'.format(self.startTime, self.loopCount)
@@ -211,12 +246,13 @@ class Trigger(Layer):
         self.start = start
         self.end = end
 
-    def compile(self, writer):
+    def compile(self, writer, current):
         super().compile(writer)
+        newCurrent = current
         for event in self.events:
             writer.write(" ")
-            event.compile(writer)
-        return {}
+            newCurrent.update(event.compile(writer, newCurrent))
+        return current
 
     def getLine(self):
         return ' T,{},{},{}\n'.format(self.triggerName, self.start, self.end)
