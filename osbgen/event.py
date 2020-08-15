@@ -90,6 +90,15 @@ class Event:
 
         # module-specific parameters.
 
+    def checkEnding(self):
+        if self.endValue == "":
+            self.endValue = self.startValue
+        elif type(self.endValue) is list:
+            for i in self.endValue:
+                if i != "":
+                    return
+            self.endValue = self.startValue
+
     def getStartValue(self):
         if type(self.startValue) in [int, float]:
             return str(self.startValue)
@@ -118,8 +127,7 @@ class Event:
         return ' {},{},{},{},{}{}\n'.format(self.eventType, self.easing, self.startTime,
                                             self.endTime, toStringList(self.startValue),
                                             ",{}".format(toStringList(self.endValue)) if (
-                                                         self.startValue != self.endValue or
-                                                         self.endValue != "")
+                                                         self.startValue != self.endValue)
                                                          else "")
 
 
@@ -131,6 +139,7 @@ class Fade(Event):
         self.startValue = startFade
         self.endValue = endFade
         self.eventType = "F"
+        self.checkEnding()
 
 # Represents a movement command.
 class Move(Event):
@@ -139,6 +148,7 @@ class Move(Event):
         self.startValue = [startX, startY]
         self.endValue = [endX, endY]
         self.eventType = "M"
+        self.checkEnding()
 
     def compile(self, writer, current):
         current = super().compile(writer, current)
@@ -154,6 +164,7 @@ class MoveX(Event):
         self.startValue = startX
         self.endValue = endX
         self.eventType = "MX"
+        self.checkEnding()
 
     def compile(self, writer, current):
         current = super().compile(writer, current)
@@ -168,6 +179,7 @@ class MoveY(Event):
         self.startValue = startY
         self.endValue = endY
         self.eventType = "MY"
+        self.checkEnding()
 
     def compile(self, writer, current):
         current = super().compile(writer, current)
@@ -182,6 +194,7 @@ class Scale(Event):
         self.startValue = startScale
         self.endValue = endScale
         self.eventType = "S"
+        self.checkEnding()
 
 # Represents a vector command.
 class Vector(Event):
@@ -200,6 +213,7 @@ class Rotate(Event):
         self.startValue = startRotate
         self.endValue = endRotate
         self.eventType = "R"
+        self.checkEnding()
 
 # Represents a colour command.
 class Colour(Event):
@@ -209,6 +223,7 @@ class Colour(Event):
         self.startValue = [startR, startG, startB]
         self.endValue = [endR, endG, endB]
         self.eventType = "C"
+        self.checkEnding()
 
 # Represents an other parameter command.
 class Parameter(Event):
