@@ -1,5 +1,5 @@
-from .object import Sprite, Animation, Audio
-from .writer import Writer
+from object import Sprite, Animation, Audio
+from writer import Writer
 
 # Represents a Storyboard.
 class Storyboard:
@@ -14,7 +14,6 @@ class Storyboard:
 
     # Compile the entire storyboard into output.txt
     def compile(self):
-        
         writer = Writer()
 
         writer.write('[Events]\n')

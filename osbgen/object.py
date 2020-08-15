@@ -1,19 +1,14 @@
-from .event import Fade, MoveX, MoveY, Move, Scale, Vector, Rotate, Colour, Parameter, Loop, Trigger
+from event import Fade, MoveX, MoveY, Move, Scale, Vector, Rotate, Colour, Parameter, Loop, Trigger
 
-# Base parent object to be inherited from.
-# Under no circumstances is it to be used in scripting.
-class Object:
-    def __init__(self, path, layer, origin, posX, posY):
-        # osu!-specific parameters.
-        self.path = path
-        self.layer = layer
-        self.origin = origin
-        self.posX = posX
-        self.posY = posY
-
+# Base class for Objects, Loops, and Triggers to inherit from.
+class Layer:
+    def __init__(self):
         # module-specific parameters.
         self.events = []
         self.posZ = 0
+
+    def compile(self, writer):
+        writer.write(str(self))
 
     def addEvent(self, event):
         self.events.append(event)
@@ -58,14 +53,6 @@ class Object:
         event = Colour(startTime, colours[0], colours[1], colours[2], endTime, endColours[0], endColours[1], endColours[2], easing)
         return self.addEvent(event)
 
-    def trigger(self, triggerName, start, end):
-        event = Trigger(triggerName, start, end)
-        return self.addEvent(event)
-
-    def loop(self, startTime, loopCount):
-        event = Loop(startTime, loopCount)
-        return self.addEvent(event)
-
     def flipX(self, startTime, endTime, *, easing=0):
         event = Parameter(startTime, endTime, "H", easing)
         return self.addEvent(event)
@@ -78,11 +65,25 @@ class Object:
         event = Parameter(startTime, endTime, "A", easing)
         return self.addEvent(event)
 
-    def compile(self, writer):
-        writer.write(str(self))
+# Base parent object to be inherited from.
+# Under no circumstances is it to be used in scripting.
+class Object(Layer):
+    def __init__(self, path, layer, origin, posX, posY):
+        super().__init__()
+        # osu!-specific parameters.
+        self.path = path
+        self.layer = layer
+        self.origin = origin
+        self.posX = posX
+        self.posY = posY
 
-        for event in self.events:
-            event.compile(writer)
+    def trigger(self, triggerName, start, end):
+        event = Trigger(triggerName, start, end)
+        return self.addEvent(event)
+
+    def loop(self, startTime, loopCount):
+        event = Loop(startTime, loopCount)
+        return self.addEvent(event)
 
 # Represents a normal sprite.
 class Sprite(Object):
