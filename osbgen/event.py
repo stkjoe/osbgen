@@ -1,3 +1,5 @@
+from math import pi
+
 # Base class for Objects, Loops, and Triggers to inherit from.
 class Layer:
     def __init__(self):
@@ -43,6 +45,10 @@ class Layer:
 
     def rotate(self, startTime, startRotate, endTime="", endRotate="", *, easing=0):
         event = Rotate(startTime, startRotate, endTime, endRotate, easing)
+        return self.addEvent(event)
+
+    def rotateDeg(self, startTime, startRotate, endTime="", endRotate="", *, easing=0):
+        event = Rotate(startTime, startRotate * pi / 180, endTime, endRotate * pi / 180, easing)
         return self.addEvent(event)
 
     def colourRGB(self, startTime, startR, startG, startB, endTime, endR="", endG="", endB="", *, easing=0):
@@ -111,8 +117,8 @@ class Event:
 
         return ' {},{},{},{},{}{}\n'.format(self.eventType, self.easing, self.startTime,
                                             self.endTime, toStringList(self.startValue),
-                                            ",{}".format(toStringList(self.endValue)) if not (
-                                                         self.startValue == self.endValue or
+                                            ",{}".format(toStringList(self.endValue)) if (
+                                                         self.startValue != self.endValue or
                                                          self.endValue != "")
                                                          else "")
 
