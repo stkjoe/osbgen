@@ -1,8 +1,74 @@
 import inspect
-from object import Layer
 
-# Base parent object to be inherited from.
-# Under no circumstances is it to be used in scripting.
+# Base class for Objects, Loops, and Triggers to inherit from.
+class Layer:
+    def __init__(self):
+        # module-specific parameters.
+        self.events = []
+        self.posZ = 0
+
+    def compile(self, writer):
+        writer.write(str(self))
+
+    def addEvent(self, event):
+        self.events.append(event)
+        return event
+
+    def fade(self, startTime, startFade, endTime="", endFade="", *, easing=0):
+        event = Fade(startTime, startFade, endTime, endFade, easing)
+        return self.addEvent(event)
+
+    def moveX(self, startTime, startX, endTime="", endX="", *, easing=0):
+        event = MoveX(startTime, startX, endTime, endX, easing)
+        return self.addEvent(event)
+
+    def moveY(self, startTime, startY, endTime="", endY="", *, easing=0):
+        event = MoveY(startTime, startY, endTime, endY, easing)
+        return self.addEvent(event)
+
+    def move(self, startTime, startX, startY, endTime="", endX="", endY="", *, easing=0):
+        event = Move(startTime, startX, startY, endTime, endX, endY, easing)
+        return self.addEvent(event)
+
+    def scale(self, startTime, startScale, endTime="", endScale="", *, easing=0):
+        event = Scale(startTime, startScale, endTime, endScale, easing)
+        return self.addEvent(event)
+
+    def vector(self, startTime, startX, startY, endTime="", endX="", endY="", *, easing=0):
+        event = Vector(startTime, startX, startY, endTime, endX, endY, easing)
+        return self.addEvent(event)
+
+    def rotate(self, startTime, startRotate, endTime="", endRotate="", *, easing=0):
+        event = Rotate(startTime, startRotate, endTime, endRotate, easing)
+        return self.addEvent(event)
+
+    def colourRGB(self, startTime, startR, startG, startB, endTime, endR="", endG="", endB="", *, easing=0):
+        event = Colour(startTime, startR, startG, startB, endTime, endR, endG, endB, easing)
+        return self.addEvent(event)
+
+    def colourHex(self, startTime, startHexcode, endTime="", endHexcode="", *, easing=0):
+        # Convert hex to RGB
+        colours = tuple(int(startHexcode.lstrip("#")[i:i+2], 16) for i in (0, 2, 4))
+        if endHexcode != "":
+            endColours = tuple(int(endHexcode.lstrip("#")[i:i+2], 16) for i in (0, 2, 4))
+        else:
+            endColours = ("", "", "")
+        event = Colour(startTime, colours[0], colours[1], colours[2], endTime, endColours[0], endColours[1], endColours[2], easing)
+        return self.addEvent(event)
+
+    def flipX(self, startTime, endTime, *, easing=0):
+        event = Parameter(startTime, endTime, "H", easing)
+        return self.addEvent(event)
+
+    def flipY(self, startTime, endTime, *, easing=0):
+        event = Parameter(startTime, endTime, "V", easing)
+        return self.addEvent(event)
+
+    def additiveBlend(self, startTime, endTime, *, easing=0):
+        event = Parameter(startTime, endTime, "A", easing)
+        return self.addEvent(event)
+
+# Base parent event to be inherited from.
 class Event:
     def __init__(self, startTime, endTime, easing):
         # osu!-specific parameters.
@@ -61,7 +127,7 @@ class MoveY(Event):
     def __str__(self):
         return ' MY,{},{},{},{}{}\n'.format(self.easing, self.startTime, self.endTime,
                                             self.startY,
-                                            # If endX is the same as startX,
+                                            # If endY is the same as startY,
                                             # Then it's fine to omit the last parameter.
                                             ",{}".format(self.endY) if not (
                                                          self.endY == self.startY or
@@ -69,10 +135,13 @@ class MoveY(Event):
                                                          else "")
 
 # Represents a movement command.
-class Move(MoveX, MoveY, Event):
+class Move(Event):
     def __init__(self, startTime, startX, startY, endTime, endX, endY, easing):
-        MoveX.__init__(self, startTime, startX, endTime, endX, easing)
-        MoveY.__init__(self, startTime, startY, endTime, endY, easing)
+        super().__init__(startTime, endTime, easing)
+        self.startX = startX
+        self.endX = endX
+        self.startY = startY
+        self.endY = endY
 
     def __str__(self):
         return ' M,{},{},{},{},{}{}\n'.format(self.easing, self.startTime, self.endTime,
@@ -95,10 +164,11 @@ class Scale(Event):
     def __str__(self):
         return ' S,{},{},{},{}{}\n'.format(self.easing, self.startTime, self.endTime,
                                            self.startScale,
-                                           # If endFade is the same as startFade
+                                           # If endScale is the same as startScale
                                            # Then it's fine to omit the last parameter.
                                            ",{}".format(self.endScale) if not (
-                                                        self.endScale == self.startScale) 
+                                                        self.endScale == self.startScale or
+                                                        self.endScale == "") 
                                                         else "")
 
 # Represents a vector command.
@@ -114,7 +184,7 @@ class Vector(Event):
     def __str__(self):
         return ' V,{},{},{},{},{}{}\n'.format(self.easing, self.startTime, self.endTime,
                                               self.startX, self.startY,
-                                              # If endFade is the same as startFade
+                                              # If endVector is the same as startVector
                                               # Then it's fine to omit the last parameter.
                                               ",{},{}".format(self.endX, self.endY) if not (
                                                               self.endX == self.startX and 
@@ -132,7 +202,7 @@ class Rotate(Event):
     def __str__(self):
         return ' R,{},{},{},{}{}\n'.format(self.easing, self.startTime, self.endTime,
                                            self.startRotate,
-                                           # If endFade is the same as startFade
+                                           # If endRotate is the same as startRotate
                                            # Then it's fine to omit the last parameter.
                                            ",{}".format(self.endRotate) if not (
                                                         self.endRotate == self.startRotate) 
@@ -153,12 +223,13 @@ class Colour(Event):
     def __str__(self):
         return ' C,{},{},{},{},{},{}{}\n'.format(self.easing, self.startTime, self.endTime,
                                                  self.startR, self.startG, self.startB,
-                                                 # If endFade is the same as startFade
+                                                 # If endColour is the same as startColour
                                                  # Then it's fine to omit the last parameter.
-                                                 ",{},{},{}".format(self.endR, self.endG, self.endB) if not (
+                                                 ",{},{},{}".format(self.endR, self.endG, self.endB) if not ((
                                                                     self.startR == self.endR and
                                                                     self.startG == self.endG and
-                                                                    self.startB == self.endB) 
+                                                                    self.startB == self.endB) or (
+                                                                    self.endR + self.endG + self.endB == ""))
                                                                     else "")
 
 # Represents an other parameter command.
@@ -180,6 +251,12 @@ class Loop(Layer):
         self.startTime = startTime
         self.loopCount = loopCount
 
+    def compile(self, writer):
+        super().compile(writer)
+        for event in self.events:
+            writer.write(" ")
+            event.compile(writer)
+
     def __str__(self):
         return ' L,{},{}\n'.format(self.startTime, self.loopCount)
 
@@ -191,6 +268,12 @@ class Trigger(Layer):
         self.triggerName = triggerName
         self.start = start
         self.end = end
+
+    def compile(self, writer):
+        super().compile(writer)
+        for event in self.events:
+            writer.write(" ")
+            event.compile(writer)
 
     def __str__(self):
         return ' T,{},{},{}\n'.format(self.triggerName, self.start, self.end)
