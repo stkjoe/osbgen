@@ -171,47 +171,89 @@ class Parameter(Event):
         return ' P,{},{},{},{}\n'.format(self.easing, self.startTime, self.endTime,
                                          self.param)
 
+# Base class for Loops and Triggers to inherit from.
+# Different to events in that these contain events but different to Objects.
+class Layer:
+    def __init__(self):
+        self.events = []
+
+    def compile(self, writer):
+        writer.write(str(self))
+
+    def addEvent(self, event):
+        self.events.append(event)
+        return event
+
+    def fade(self, startTime, startFade, endTime=None, endFade=None, *, easing=0):
+        event = Fade(startTime, startFade, endTime, endFade, easing)
+        return self.addEvent(event)
+
+    def moveX(self, startTime, startX, endTime=None, endX=None, *, easing=0):
+        event = MoveX(startTime, startX, endTime, endX, easing)
+        return self.addEvent(event)
+
+    def moveY(self, startTime, startY, endTime=None, endY=None, *, easing=0):
+        event = MoveY(startTime, startY, endTime, endY, easing)
+        return self.addEvent(event)
+
+    def move(self, startTime, startX, startY, endTime=None, endX=None, endY=None, *, easing=0):
+        event = Move(startTime, startX, startY, endTime, endX, endY, easing)
+        return self.addEvent(event)
+
+    def scale(self, startTime, startScale, endTime=None, endScale=None, *, easing=0):
+        event = Scale(startTime, startScale, endTime, endScale, easing)
+        return self.addEvent(event)
+
+    def vector(self, startTime, startX, startY, endTime=None, endX=None, endY=None, *, easing=0):
+        event = Vector(startTime, startX, startY, endTime, endX, endY, easing)
+        return self.addEvent(event)
+
+    def rotate(self, startTime, startRotate, endTime=None, endRotate=None, *, easing=0):
+        event = Rotate(startTime, startRotate, endTime, endRotate, easing)
+        return self.addEvent(event)
+
+    def colourRGB(self, startTime, startR, startG, startB, endTime, endR=None, endG=None, endB=None, *, easing=0):
+        event = Colour(startTime, startR, startG, startB, endTime, endR, endG, endB, easing)
+        return self.addEvent(event)
+
+    def colourHex(self, startTime, startHexcode, endTime=None, endHexcode=None, *, easing=0):
+        # Convert hex to RGB
+        colours = tuple(int(startHexcode.lstrip("#")[i:i+2], 16) for i in (0, 2, 4))
+        endColours = tuple(int(endHexcode.lstrip("#")[i:i+2], 16) for i in (0, 2, 4))
+        event = Colour(startTime, colours[0], colours[1], colours[2], endTime, endColours[0], endColours[1], endColours[2], easing)
+        return self.addEvent(event)
+
+    def flipX(self, startTime, endTime, *, easing=0):
+        event = Parameter(startTime, endTime, "H", easing)
+        return self.addEvent(event)
+
+    def flipY(self, startTime, endTime, *, easing=0):
+        event = Parameter(startTime, endTime, "V", easing)
+        return self.addEvent(event)
+
+    def additiveBlend(self, startTime, endTime, *, easing=0):
+        event = Parameter(startTime, endTime, "A", easing)
+        return self.addEvent(event)
+
 # Represents a Loop command.
-class Loop:
+class Loop(Layer):
     def __init__(self, startTime, loopCount):
+        super().__init__()
         # osu!-specific parameters.
         self.startTime = startTime
         self.loopCount = loopCount
 
-        # module-specific parameters.
-        self.events = []
-
-    def compile(self):
-        with open("output.txt", "a") as file:
-            file.write((' L,{},{}\n').format(self.startTime, self.loopCount))
-            for event in self.events:
-                file.write(' ')
-                event.compile()
-
-        return 0
-
     def __str__(self):
-        return self.compile()
+        return ' L,{},{}\n'.format(self.startTime, self.loopCount)
 
 # Represents a Trigger command.
-class Trigger:
+class Trigger(Layer):
     def __init__(self, triggerName, start, end):
+        super().__init__()
         # osu!-specific parameters.
         self.triggerName = triggerName
         self.start = start
         self.end = end
 
-        # module-specific parameters.
-        self.events = []
-
-    def compile(self):
-        with open("output.txt", "a") as file:
-            file.write((' T,{},{},{}\n').format(self.triggerName, self.start, self.end))
-            for event in self.events:
-                file.write(' ')
-                event.compile()
-
-        return 0
-
     def __str__(self):
-        return self.compile()
+        return ' T,{},{},{}\n'.format(self.triggerName, self.start, self.end)
