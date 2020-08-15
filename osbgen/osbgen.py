@@ -5,6 +5,7 @@ from .writer import Writer
 class Storyboard:
     def __init__(self, *, diffSpecific=False):
         self.diffSpecific = diffSpecific
+        self.background = ""
         self.backgroundLayer = []
         self.failLayer = []
         self.passLayer = []
@@ -18,6 +19,8 @@ class Storyboard:
 
         writer.write('[Events]\n')
         writer.write('//Background and Video events\n')
+        if self.background != "":
+            writer.write('0,0,{},0,0\n'.format(self.background))
         if self.diffSpecific:
             writer.write('//Break Periods\n')
 
@@ -54,6 +57,10 @@ class Storyboard:
             obj.compile(writer)
 
         return 0
+
+    # Add a background to the Storyboard.
+    def addBackground(self, path):
+        self.background = path
 
     # Add a Sprite to the Storyboard.
     def addSprite(self, path, *, layer="Foreground", origin="Centre", posX=320, posY=240):
