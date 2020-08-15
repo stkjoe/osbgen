@@ -1,8 +1,9 @@
 from .object import Sprite, Animation, Audio
+from .writer import Writer
 
 # Represents a Storyboard.
 class Storyboard:
-    def __init__(self, diffSpecific=False):
+    def __init__(self, *, diffSpecific=False):
         self.diffSpecific = diffSpecific
         self.backgroundLayer = []
         self.failLayer = []
@@ -13,49 +14,51 @@ class Storyboard:
 
     # Compile the entire storyboard into output.txt
     def compile(self):
-        with open("output.txt", "a") as file:
-            file.write('[Events]\n')
-            file.write('//Background and Video events\n')
-            if self.diffSpecific:
-                file.write('//Break Periods\n')
+        
+        writer = Writer()
 
-            # Write all Background sprites.
-            file.write('Storyboard Layer 0 (Background)\n')
-            for obj in self.backgroundLayer:
-                obj.compile()
+        writer.write('[Events]\n')
+        writer.write('//Background and Video events\n')
+        if self.diffSpecific:
+            writer.write('//Break Periods\n')
 
-            # Write all Fail sprites.
-            file.write('//Storyboard Layer 1 (Fail)\n')
-            for obj in self.failLayer:
-                obj.compile()
+        # Write all Background sprites.
+        writer.write('//Storyboard Layer 0 (Background)\n')
+        for obj in self.backgroundLayer:
+            obj.compile(writer)
 
-            # Write all Pass sprites.
-            file.write('//Storyboard Layer 2 (Pass)\n')
-            for obj in self.passLayer:
-                obj.compile()
+        # Write all Fail sprites.
+        writer.write('//Storyboard Layer 1 (Fail)\n')
+        for obj in self.failLayer:
+            obj.compile(writer)
 
-            # Write all Foreground sprites.
-            file.write('//Storyboard Layer 3 (Foreground)\n')
-            for obj in self.foregroundLayer:
-                obj.compile()
+        # Write all Pass sprites.
+        writer.write('//Storyboard Layer 2 (Pass)\n')
+        for obj in self.passLayer:
+            obj.compile(writer)
 
-            # Write all Overlay sprites.
-            # Only valid for .osb files (not diff-specific).
-            if not self.diffSpecific:
-                file.write('//Storyboard Layer 3 (Foreground)\n')
-                for obj in self.overlayLayer:
-                    obj.compile()
+        # Write all Foreground sprites.
+        writer.write('//Storyboard Layer 3 (Foreground)\n')
+        for obj in self.foregroundLayer:
+            obj.compile(writer)
 
-            # Write all Sound sprites.
-            file.write('//Storyboard Sound Samples\n')
-            for obj in self.soundLayer:
-                obj.compile()
+        # Write all Overlay sprites.
+        # Only valid for .osb files (not diff-specific).
+        if not self.diffSpecific:
+            writer.write('//Storyboard Layer 4 (Overlay)\n')
+            for obj in self.overlayLayer:
+                obj.compile(writer)
+
+        # Write all Sound sprites.
+        writer.write('//Storyboard Sound Samples\n')
+        for obj in self.soundLayer:
+            obj.compile(writer)
 
         return 0
 
     # Add a Sprite to the Storyboard.
-    def addSprite(self, path, layer, *, origin, posX, posY):
-        sprite = Sprite(path, layer, origin=origin, posX=posX, posY=posY)
+    def addSprite(self, path, *, layer="Foreground", origin="Centre", posX=320, posY=240):
+        sprite = Sprite(path, layer, origin, posX, posY)
         if layer == "Background":
             self.backgroundLayer.append(sprite)
         elif layer == "Pass":
@@ -74,8 +77,8 @@ class Storyboard:
         return sprite
 
     # Add an Animation to the Storyboard.
-    def addAnimation(self, path, layer, *, origin, posX, posY, frameCount, frameDelay, loopType):
-        animation = Animation(path, layer, origin=origin, posX=posX, frameCount=frameCount, frameDelay=frameDelay, loopType=loopType)
+    def addAnimation(self, path, frameCount, frameDelay, *, layer="Foreground", origin="Centre", posX=320, posY=240, loopType="LoopForever"):
+        animation = Animation(path, layer, origin, posX, posY, frameCount, frameDelay, loopType)
         if layer == "Background":
             self.backgroundLayer.append(animation)
         elif layer == "Pass":
@@ -94,7 +97,7 @@ class Storyboard:
         return animation
 
     # Add an Audio sample to the Storyboard.
-    def addAudio(self, path, layer, *, time, volume):
-        audio = Audio(path, layer, time=time, volume=volume)
+    def addAudio(self, path, time, *, layer="Foreground", volume=100):
+        audio = Audio(path, time, layer, volume)
         self.soundLayer.append(audio)
         return audio
