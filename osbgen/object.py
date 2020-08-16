@@ -11,46 +11,6 @@ class Object(Layer):
         self.posX = posX
         self.posY = posY
 
-        # module-specific parameters.
-        self.current = {
-            "Move": {
-                "Value": [posX, posY],
-                "Time": 0
-            },
-            "MoveX": {
-                "Value": 0,
-                "Time": 0
-            },
-            "MoveY": {
-                "Value": 0,
-                "Time": 0
-            },
-            "Fade": {
-                "Value": 1,
-                "Time": 0
-            },
-            "Rotate": {
-                "Value": 1,
-                "Time": 0
-            },
-            "Colour": {
-                "Value": [0, 0, 0],
-                "Time": 0
-            },
-            "Scale": {
-                "Value": 1,
-                "Time": 0
-            },
-            "Vector": {
-                "Value": [1, 1],
-                "Time": 0,
-            },
-            "Time": 0,
-            "X": 0,
-            "Y": 0
-        }
-        self.z = 0
-
     def trigger(self, triggerName, start, end):
         event = Trigger(triggerName, start, end)
         return self.addEvent(event)
@@ -65,7 +25,7 @@ class Object(Layer):
     def compile(self, writer):
         super().compile(writer)
         for event in self.events:
-            self.current.update(event.compile(writer, self.current))
+            event.compile(writer)
 
 # Represents a normal sprite.
 class Sprite(Object):
