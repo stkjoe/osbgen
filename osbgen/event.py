@@ -55,56 +55,96 @@ class Layer:
 
     def addEvent(self, event):
         self.events.append(event)
+        # Update current values
+        if event.__class__.__name__ not in ["Loop", "Trigger"]:
+            self.current[event.__class__.__name__]["Value"] = event.getEndValue()
+            self.current[event.__class__.__name__]["Time"] = event.getEndTime()
+            self.current["Time"] = event.getEndTime()
         return event
-
-    def updateCurrent(self, event):
-        self.current[event.__class__.__name__]["Value"] = event.getEndValue()
-        self.current[event.__class__.__name__]["Time"] = event.getEndTime()
-        self.current["Time"] = event.getEndTime()
 
     def fade(self, startTime, startFade, endTime="", endFade="", *, easing=0):
         event = Fade(startTime, startFade, endTime, endFade, easing)
-        self.updateCurrent(event)
+        return self.addEvent(event)
+
+    def addRel(self, duration, changeValue, objType, onPrev, easing):
+        # Based on previous any-object
+        if onPrev:
+            baseTime = self.current["Time"]
+        else:
+            baseTime = self.current[objType.__name__]["Time"]
+        # If the value is a list or tuple, change it.
+        startValue = self.current[objType.__name__]["Value"]
+        endValue = startValue
+        if type(changeValue) == type(self.current[objType.__name__]["Value"]) and type(changeValue) in [list, tuple]:
+            for value in range(len(changeValue)):
+                endValue[value] += changeValue[value]
+        else:
+            endValue += changeValue
+        event = objType(baseTime, baseTime + duration, startValue, endValue, easing)
+        return event
+
+    def relFade(self, duration, changeValue, *, onPrev=False, easing=0):
+        event = self.addRel(duration, changeValue, Fade, onPrev, easing)
         return self.addEvent(event)
 
     def moveX(self, startTime, startX, endTime="", endX="", *, easing=0):
         event = MoveX(startTime, startX, endTime, endX, easing)
-        self.updateCurrent(event)
+        return self.addEvent(event)
+
+    def relMoveX(self, duration, changeValue, *, onPrev=False, easing=0):
+        event = self.addRel(duration, changeValue, MoveX, onPrev, easing)
         return self.addEvent(event)
 
     def moveY(self, startTime, startY, endTime="", endY="", *, easing=0):
         event = MoveY(startTime, startY, endTime, endY, easing)
-        self.updateCurrent(event)
+        return self.addEvent(event)
+
+    def relMoveY(self, duration, changeValue, *, onPrev=False, easing=0):
+        event = self.addRel(duration, changeValue, MoveY, onPrev, easing)
         return self.addEvent(event)
 
     def move(self, startTime, startX, startY, endTime="", endX="", endY="", *, easing=0):
         event = Move(startTime, startX, startY, endTime, endX, endY, easing)
-        self.updateCurrent(event)
+        return self.addEvent(event)
+
+    def relMove(self, duration, changeValue, *, onPrev=False, easing=0):
+        event = self.addRel(duration, changeValue, Move, onPrev, easing)
         return self.addEvent(event)
 
     def scale(self, startTime, startScale, endTime="", endScale="", *, easing=0):
         event = Scale(startTime, startScale, endTime, endScale, easing)
-        self.updateCurrent(event)
+        return self.addEvent(event)
+
+    def relScale(self, duration, changeValue, *, onPrev=False, easing=0):
+        event = self.addRel(duration, changeValue, Scale, onPrev, easing)
         return self.addEvent(event)
 
     def vector(self, startTime, startX, startY, endTime="", endX="", endY="", *, easing=0):
         event = Vector(startTime, startX, startY, endTime, endX, endY, easing)
-        self.updateCurrent(event)
+        return self.addEvent(event)
+
+    def relVector(self, duration, changeValue, *, onPrev=False, easing=0):
+        event = self.addRel(duration, changeValue, Vector, onPrev, easing)
         return self.addEvent(event)
 
     def rotate(self, startTime, startRotate, endTime="", endRotate="", *, easing=0):
         event = Rotate(startTime, startRotate, endTime, endRotate, easing)
-        self.updateCurrent(event)
+        return self.addEvent(event)
+
+    def relRotate(self, duration, changeValue, *, onPrev=False, easing=0):
+        event = self.addRel(duration, changeValue, Rotate, onPrev, easing)
         return self.addEvent(event)
 
     def rotateDeg(self, startTime, startRotate, endTime="", endRotate="", *, easing=0):
         event = Rotate(startTime, startRotate * pi / 180, endTime, endRotate * pi / 180, easing)
-        self.updateCurrent(event)
+        return self.addEvent(event)
+
+    def relRotateDeg(self, duration, changeValue, *, onPrev=False, easing=0):
+        event = self.addRel(duration, changeValue * pi / 180, Rotate, onPrev, easing)
         return self.addEvent(event)
 
     def colourRGB(self, startTime, startR, startG, startB, endTime, endR="", endG="", endB="", *, easing=0):
         event = Colour(startTime, startR, startG, startB, endTime, endR, endG, endB, easing)
-        self.updateCurrent(event)
         return self.addEvent(event)
 
     def colourHex(self, startTime, startHexcode, endTime="", endHexcode="", *, easing=0):
@@ -115,7 +155,6 @@ class Layer:
         else:
             endColours = ("", "", "")
         event = Colour(startTime, colours[0], colours[1], colours[2], endTime, endColours[0], endColours[1], endColours[2], easing)
-        self.updateCurrent(event)
         return self.addEvent(event)
 
     def flipX(self, startTime, endTime, *, easing=0):
