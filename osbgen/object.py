@@ -49,6 +49,7 @@ class Object(Layer):
             "X": 0,
             "Y": 0
         }
+        self.z = 0
 
     def trigger(self, triggerName, start, end):
         event = Trigger(triggerName, start, end)
@@ -57,6 +58,9 @@ class Object(Layer):
     def loop(self, startTime, loopCount):
         event = Loop(startTime, loopCount)
         return self.addEvent(event)
+
+    def changeLayer(self, z):
+        self.z = z
 
     def compile(self, writer):
         super().compile(writer)

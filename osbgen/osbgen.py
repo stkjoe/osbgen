@@ -15,6 +15,13 @@ class Storyboard:
 
     # Compile the entire storyboard into output.txt
     def compile(self):
+
+        # pre-sort lists to z-index
+        for x in [self.backgroundLayer, self.failLayer, self.passLayer, 
+                  self.foregroundLayer, self.overlayLayer]:
+            if len(x) > 0:
+                x.sort(key=lambda y: y.z)
+
         writer = Writer()
 
         writer.write('[Events]\n')
