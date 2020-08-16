@@ -80,7 +80,7 @@ class Layer:
                 endValue[value] += changeValue[value]
         else:
             endValue += changeValue
-        event = objType(baseTime, baseTime + duration, startValue, endValue, easing)
+        event = objType(baseTime, startValue, baseTime + duration, endValue, easing)
         return event
 
     def relFade(self, duration, changeValue, *, onPrev=False, easing=0):
