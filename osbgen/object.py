@@ -1,4 +1,4 @@
-from .event import Loop, Trigger, Layer
+from event import Loop, Trigger, Layer
 
 # Base parent object to be inherited from.
 class Object(Layer):
