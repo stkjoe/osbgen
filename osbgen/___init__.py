@@ -1,1 +1,1 @@
-from osbgen import Storyboard
+from .osbgen import Storyboard

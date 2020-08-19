@@ -1,5 +1,5 @@
-from object import Sprite, Animation, Audio
-from writer import Writer
+from .object import Sprite, Animation, Audio
+from .writer import Writer
 
 # Represents a Storyboard.
 class Storyboard:
